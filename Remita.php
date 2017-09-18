@@ -12,7 +12,7 @@ class Remita {
     private $apiKey = '1946';
     private $serviceCharge = 105;//Transaction fee for each debit request
     private $responseURL = 'http://localhost/remita/response.php';
-    private $baseRemitaURL = 'http://www.remitademo.net/remita/ecomm/mandate/';
+    private $baseRemitaURL = 'http://www.remitademo.net/remita/ecomm/';
     private $debitDirectProcessURL = 'http://www.remitademo.net/remita/exapp/api/v1/send/api/echannelsvc/echannel/mandate/payment/send';//'http://www.remitademo.net/remita/ecomm/directdebit/init.reg';
     private $mandateSetupURL = 'http://www.remitademo.net/remita/ecomm/mandate/setup.reg';
     private $baseMandateViewURL = 'http://www.remitademo.net/remita/ecomm/mandate/form/';
@@ -23,7 +23,7 @@ class Remita {
           //$url = 'http://www.remitademo.net/remita/ecomm/merchantId/requestId/hash/orderstatus.reg';
   
         $hash = hash('sha512', $loanId . $this->apiKey . $this->merchantId);
-        $url = 'http://www.remitademo.net/remita/ecomm/' . $this->merchantId .'/' . $loanId . '/' . $hash . '/'. 'orderstatus.reg'; 
+        $url = $this->baseRemitaURL . $this->merchantId .'/' . $loanId . '/' . $hash . '/'. 'orderstatus.reg'; 
         echo $url;
         $response = file($url);          
         return $response[0];
@@ -35,7 +35,7 @@ public function getTransactionStatusByRRR($RRR){
   //http://www.remitademo.net/remita/ecomm/merchantId/RRR/hash/status.reg
 //HASH: SHA512(RRR + apiKey + merchantId)
         $hash = hash('sha512', $RRR . $this->apiKey . $this->merchantId);
-        $url = 'http://www.remitademo.net/remita/ecomm/' . $this->merchantId .'/' . $RRR . '/' . $hash . '/'. 'status.reg'; 
+        $url = $this->baseRemitaURL . $this->merchantId .'/' . $RRR . '/' . $hash . '/'. 'status.reg'; 
         $response = file($url);
         return json_decode($response[0],true);
  
@@ -47,10 +47,7 @@ public function getTransactionStatusByRRR($RRR){
         curl_setopt($ch, CURLOPT_HEADER, 0);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-
         $output = curl_exec($ch);
-        //print_r($output);
-        //exit;
         return $output;
     }
 
@@ -63,10 +60,6 @@ public function getTransactionStatusByRRR($RRR){
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $endPoint);
         curl_setopt($ch, CURLOPT_HEADER, 0);
-        /* curl_setopt($ch, CURLOPT_USERPWD,
-          $this->username . ":" . $this->password); */
-        //remove the next line during deployment
-        //curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postData));
         curl_setopt($ch, CURLOPT_HTTPHEADER, array(
@@ -120,22 +113,16 @@ public function getTransactionStatusByRRR($RRR){
         $requestId = $this->getRequestId($mambuLoanId);
         $hash = hash('sha512', $requestId . $this->apiKey . $this->merchantId);
         //http://www.remitademo.net/remita/ecomm/mandate/merchantId/requestId/hash/status.reg
-        $url = "http://www.remitademo.net/remita/ecomm/mandate/" . $this->merchantId . "/" . $requestId . "/" . $hash . "/status.reg";
+        $url = $this->baseRemitaURL.'mandate/' . $this->merchantId . "/" . $requestId . "/" . $hash . "/status.reg";
         $response = file($url);
-        //echo '<br />';
-        //print_r($url);
-        //echo '<br />';
-        //$this->rawLog('getMandateStatus',$mambuLoanId.':'.$response[0]);
-        //return $this->removeJSONP($response[0]);
         return json_decode($this->removeJSONP($response[0]), TRUE);
     }
 
     public function getMandateHistory($mambuLoanId) {
         $hash = hash('sha512', $mambuLoanId . $this->apiKey . $this->merchantId);
 //    http://www.remitademo.net/remita/ecomm/mandate/merchantId/requestId/hash/history.reg
-        $url = "http://www.remitademo.net/remita/ecomm/mandate/" . $this->merchantId . "/" . $mambuLoanId . "/" . $hash . "/history.reg";
+        $url = $this->baseRemitaURL."mandate/" . $this->merchantId . "/" . $mambuLoanId . "/" . $hash . "/history.reg";
         $response = file($url);
-
         return $response;
         //return json_decode($this->removeJSONP($response), TRUE);
     }
@@ -157,7 +144,6 @@ public function getTransactionStatusByRRR($RRR){
     public function doDirectDebit($directDebitData) {
 //HASH: SHA512(merchantId+serviceTypeId+requestId+api_key)
         //merchantId+serviceTypeId+requestId+totalAmount+api_key
-
         $hash = hash('sha512', $this->merchantId . $this->serviceTypeId . $directDebitData['request_id']. $directDebitData['amount'] . $this->apiKey);
         $postData = array('merchantId' => $this->merchantId,
             'serviceTypeId' => $this->serviceTypeId,
@@ -170,7 +156,6 @@ public function getTransactionStatusByRRR($RRR){
         );  
         print_r(json_encode($postData));
         $result = $this->callRemitaApiPost($this->debitDirectProcessURL, $postData);
-        print_r($result);
         return json_decode($this->removeJSONP($result), TRUE);
     }
 
@@ -255,7 +240,6 @@ public function getTransactionStatusByRRR($RRR){
         );
 
         $result = $this->callRemitaApiPost($this->terminateMandateURL, $postData);
-        //print_r($result);
         return json_decode($this->removeJSONP($result), TRUE);
     }
 
