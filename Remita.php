@@ -1,7 +1,7 @@
 <?php
 /**
  * Related methods and properties
- * for Remita operations
+ * for Remita Direct Debit operations
  *
  * @author Temidayo Oluwabusola
  */
@@ -13,7 +13,7 @@ class Remita {
     private $serviceCharge = 105;//Transaction fee for each debit request
     private $responseURL = 'http://localhost/remita/response.php';
     private $baseRemitaURL = 'http://www.remitademo.net/remita/ecomm/';
-    private $debitDirectProcessURL = 'http://www.remitademo.net/remita/exapp/api/v1/send/api/echannelsvc/echannel/mandate/payment/send';//'http://www.remitademo.net/remita/ecomm/directdebit/init.reg';
+    private $debitDirectProcessURL = 'http://www.remitademo.net/remita/exapp/api/v1/send/api/echannelsvc/echannel/mandate/payment/send';
     private $mandateSetupURL = 'http://www.remitademo.net/remita/ecomm/mandate/setup.reg';
     private $baseMandateViewURL = 'http://www.remitademo.net/remita/ecomm/mandate/form/';
     private $cancelDebitDirectURL = 'http://www.remitademo.net/remita/exapp/api/v1/send/api/echannelsvc/echannel/mandate/payment/stop';
@@ -21,7 +21,6 @@ class Remita {
 
     public function getTransactionStatus($loanId){
           //$url = 'http://www.remitademo.net/remita/ecomm/merchantId/requestId/hash/orderstatus.reg';
-  
         $hash = hash('sha512', $loanId . $this->apiKey . $this->merchantId);
         $url = $this->baseRemitaURL . $this->merchantId .'/' . $loanId . '/' . $hash . '/'. 'orderstatus.reg'; 
         echo $url;
@@ -141,6 +140,11 @@ public function getTransactionStatusByRRR($RRR){
         return $data;
     }
 
+	/**
+     * Sends direct debit request
+     * @param array $directDebitData
+     * @return json
+     */
     public function doDirectDebit($directDebitData) {
 //HASH: SHA512(merchantId+serviceTypeId+requestId+api_key)
         //merchantId+serviceTypeId+requestId+totalAmount+api_key
